@@ -7,27 +7,23 @@
 //
 
 #import "LJInAppBrowserController.h"
-#import "NJKWebViewProgress.h"
-#import "NJKWebViewProgressView.h"
-#import "UIBarButtonItem+Extension.h"
+//#import "UIBarButtonItem+Extension.h"
 #import "UIButton+Extension.h"
 #import "LJInAppBrowserActionSheet.h"
-#import "UMSocial.h"
 #import "LJInAppBrowserResizeFontSlider.h"
-
+#import <WebKit/WebKit.h>
 #define LJSrcName(file) [LJInAppBrowserBundleName stringByAppendingPathComponent:file]
 
-@interface LJInAppBrowserController ()<UIWebViewDelegate,NJKWebViewProgressDelegate,UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate>
+@interface LJInAppBrowserController ()<UIWebViewDelegate,UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate>
 
-
-@property (nonatomic,strong) UIWebView *webView;
-@property (nonatomic,strong) NJKWebViewProgressView *progressView;
-@property (nonatomic,strong) NJKWebViewProgress *progressProxy;
-
+@property (nonatomic,strong) WKWebView *wkWebview;
+@property (nonatomic,strong) UIProgressView *myProgressView;
+@property (nonatomic,copy) NSString *backBtnName;
+@property (nonatomic,strong) UIColor *navigationItemTitleColor;
 @property (nonatomic,strong) UILabel *websiteLabel;
 
+
 @property (nonatomic,assign) int scale;
-@property (nonatomic,copy) NSString *websiteName;
 @end
 
 @implementation LJInAppBrowserController
@@ -35,79 +31,175 @@
 NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 
 #pragma mark life cycle
+- (instancetype)initWithInAppBrowserControllerStyle:(LJInAppBrowserControllerStyle)style UrlStr:(NSString *)urlStr {
+    if (self = [super init]) {
+        _style = style;
+        if (_style == LJInAppBrowserControllerStyleWhite) {
+            self.backBtnName = @"navigationbar_back_withtext_white";
+            self.navigationItemTitleColor = [UIColor grayColor];
+        } else {
+            self.backBtnName = @"navigationbar_back_withtext_gray";
+            self.navigationItemTitleColor = [UIColor whiteColor];
+        }
+        _urlStr = urlStr;
+    }
+    return self;
+}
+
+- (instancetype)init {
+    if (self = [super init]) {
+        _style = LJInAppBrowserControllerStyleWhite;
+        _navigationItemTitleColor = [UIColor whiteColor];
+        _backBtnName = @"navigationbar_back_withtext_white";
+        _loadingProgressColor = [UIColor blueColor];
+    }
+    return self;
+}
+
+-(void)setupNavigationItem {
+    self.scale = 100;
+    [self.view setBackgroundColor:[UIColor whiteColor]];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(share)];
+    //    self.navigationItem.rightBarButtonItem = [UIBarButtonItem itemWithTarget:self action:@selector(itemClick) image:LJSrcName(@"navigationbar_more") highlightedImage:LJSrcName(@"navigationbar_more_highlighted")];
+    
+    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
+    backBtn.frame = CGRectMake(0, 0, 44, 44);
+    
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
+}
+
+- (void)setupTitleAndProgressView {
+    CGFloat progressBarHeight = 2.f;
+    CGRect navigationBarBounds = self.navigationController.navigationBar.bounds;
+    CGRect barFrame = CGRectMake(0, navigationBarBounds.size.height - progressBarHeight, navigationBarBounds.size.width, progressBarHeight);
+    
+    
+    self.myProgressView = [[UIProgressView alloc] initWithFrame:barFrame];
+    self.myProgressView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+    self.myProgressView.tintColor = self.loadingProgressColor;
+    self.myProgressView.trackTintColor = [UIColor whiteColor];
+    [self.navigationController.navigationBar addSubview:self.myProgressView];
+    
+    [self.wkWebview addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:NULL];
+    [self.wkWebview addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:NULL];
+    [self.wkWebview addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:NULL];
+}
+
+- (void)loadURL {
+    NSURL *url = [NSURL URLWithString:self.urlStr];
+    NSURLRequest *req = [[NSURLRequest alloc] initWithURL:url];
+    [self.wkWebview loadRequest:req];
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     [self setupNavigationItem];
-
-    [self.view addSubview:self.webView];
+    
+    [self.view addSubview:self.wkWebview];
+    [[self.wkWebview.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor] setActive:YES];
+    [[self.wkWebview.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:64] setActive:YES];
+    [[self.wkWebview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor] setActive:YES];
+    [[self.wkWebview.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor] setActive:YES];
+    
     [self.view addSubview:self.websiteLabel];
-
+    [self setupTitleAndProgressView];
     [self loadURL];
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
     [self.view sendSubviewToBack:self.websiteLabel];
-    
-    [self.navigationController.navigationBar addSubview:self.progressView];
 }
 
--(void)viewWillDisappear:(BOOL)animated
-{
-    [super viewWillDisappear:animated];
-    
-    [self.progressView removeFromSuperview];
+-(void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    [self.myProgressView removeFromSuperview];
+    [self.wkWebview removeObserver:self forKeyPath:@"estimatedProgress"];
+    [self.wkWebview removeObserver:self forKeyPath:@"title"];
+    [self.wkWebview removeObserver:self forKeyPath:@"URL"];
 }
 
-#pragma mark NJKWebViewProgressDelegate
-- (void)webViewProgress:(NJKWebViewProgress *)webViewProgress updateProgress:(float)progress
-{
-    [_progressView setProgress:progress animated:YES];
-    self.title = [_webView stringByEvaluatingJavaScriptFromString:@"document.title"];
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    
+    if ([keyPath isEqualToString:@"estimatedProgress"]) {
+        
+        if (object == self.wkWebview) {
+            [self.myProgressView setAlpha:1.0f];
+            [self.myProgressView setProgress:self.wkWebview.estimatedProgress animated:YES];
+            if(self.wkWebview.estimatedProgress >=1.0f) {
+                
+                [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    [self.myProgressView setAlpha:0.0f];
+                } completion:^(BOOL finished) {
+                    [self.myProgressView setProgress:0.0f animated:NO];
+                }];
+                
+            }
+        }else {
+            [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+        }
+        
+    }
+    
+    if ([keyPath isEqualToString:@"title"]) {
+        if (object == self.wkWebview) {
+            self.title = self.wkWebview.title;
+        } else {
+            [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+        }
+    }
+    
+    if ([keyPath isEqualToString:@"URL"]) {
+        if (object == self.wkWebview) {
+            NSString *website = [self getDomainFromURL:[self.wkWebview.URL absoluteString]];
+            self.websiteLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供", website];
+        } else {
+            [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+        }
+    }
 }
 
 #pragma mark UIScrollViewDelegate
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    CGFloat y = self.webView.scrollView.contentOffset.y;
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat y = self.wkWebview.scrollView.contentOffset.y;
     if (y < -30) {
         [self.view bringSubviewToFront:self.websiteLabel];
     }else{
         [self.view sendSubviewToBack:self.websiteLabel];
     }
+    
 }
 
 #pragma mark UIWebViewDelegate
-- (void)webViewDidFinishLoad:(UIWebView *)webView;
-{
-    self.websiteName = [self getDomainFromURL:webView.request.URL.absoluteString];
-    self.fullUrl = webView.request.URL.absoluteString;
-    self.websiteLabel.text = [NSString stringWithFormat:@"网页由 %@ 提供",self.websiteName];
-    
-    self.scale = [[[NSUserDefaults standardUserDefaults] objectForKey:@"scaleKey"] intValue];
-    NSString* str1 =[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '%d%%'",self.scale];
-    [_webView stringByEvaluatingJavaScriptFromString:str1];
-}
+//- (void)webViewDidFinishLoad:(UIWebView *)webView;
+//{
+//    self.websiteName = [self getDomainFromURL:webView.request.URL.absoluteString];
+//    self.fullUrl = webView.request.URL.absoluteString;
+//    self.websiteLabel.text = [NSString stringWithFormat:@"网页由 %@ 提供",self.websiteName];
+//    
+//    self.scale = [[[NSUserDefaults standardUserDefaults] objectForKey:@"scaleKey"] intValue];
+//    NSString* str1 =[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '%d%%'",self.scale];
+//    [_webView stringByEvaluatingJavaScriptFromString:str1];
+//}
+
 #pragma mark LJInAppBrowserActionSheetDelegate
-- (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
-{
-    switch (tag) {
-        case 1:{
-            LJInAppBrowserResizeFontSlider *sliderView = [LJInAppBrowserResizeFontSlider inAppBrowserResizeFontSlider];
-            sliderView.delegate = self;
-            [[UIApplication sharedApplication].keyWindow addSubview:sliderView];
-        }
-            break;
-        case 3:
-            [self.webView reload];
-            break;
-        default:
-            break;
-    }
-}
+//- (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
+//{
+//    switch (tag) {
+//        case 1:{
+//            LJInAppBrowserResizeFontSlider *sliderView = [LJInAppBrowserResizeFontSlider inAppBrowserResizeFontSlider];
+//            sliderView.delegate = self;
+//            [[UIApplication sharedApplication].keyWindow addSubview:sliderView];
+//        }
+//            break;
+//        case 3:
+//            [self.webView reload];
+//            break;
+//        default:
+//            break;
+//    }
+//}
 #pragma mark LJInAppBrowserResizeFontSliderDelegate
 - (void)inAppBrowserResizeFontSlider:(LJInAppBrowserResizeFontSlider *)slider didChangeFontSize:(NSString *)percent
 {
@@ -135,67 +227,44 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         default:
             break;
     }
-    NSString* str1 =[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '%d%%'",scale];
-    [_webView stringByEvaluatingJavaScriptFromString:str1];
-    [[NSUserDefaults standardUserDefaults] setObject:@(scale) forKey:@"scaleKey"];
+//    NSString* str1 =[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '%d%%'",scale];
+//    [_webView stringByEvaluatingJavaScriptFromString:str1];
+//    [[NSUserDefaults standardUserDefaults] setObject:@(scale) forKey:@"scaleKey"];
 }
 #pragma mark getter and setter
-- (UIWebView *)webView
-{
-    if (!_webView) {
-        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height)];
-        _webView.delegate = self.progressProxy;
-        _webView.scalesPageToFit = YES;
-        _webView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-        _webView.contentMode = UIViewContentModeRedraw;
-        _webView.scrollView.delegate = self;
+- (WKWebView *)wkWebview {
+    if (!_wkWebview) {
+        _wkWebview = [WKWebView new];
+        _wkWebview.backgroundColor = [UIColor blackColor];
+        _wkWebview.scrollView.delegate = self;
+        _wkWebview.translatesAutoresizingMaskIntoConstraints = NO;
     }
-    return _webView;
+    return _wkWebview;
 }
-- (NJKWebViewProgress *)progressProxy
-{
-    if (!_progressProxy) {
-        _progressProxy = [[NJKWebViewProgress alloc] init];
-        _progressProxy.progressDelegate = self;
-        _progressProxy.webViewProxyDelegate = self;
-    }
-    return _progressProxy;
-}
-- (NJKWebViewProgressView *)progressView
-{
-    if (!_progressView) {
-        CGFloat progressBarHeight = 2.f;
-        CGRect navigationBarBounds = self.navigationController.navigationBar.bounds;
-        CGRect barFrame = CGRectMake(0, navigationBarBounds.size.height - progressBarHeight, navigationBarBounds.size.width, progressBarHeight);
-        _progressView = [[NJKWebViewProgressView alloc] initWithFrame:barFrame];
-        _progressView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-        self.progressView.progressBarView.backgroundColor = self.loadingProgressColor;
-    }
-    return _progressView;
-}
-- (UILabel *)websiteLabel
-{
+- (UILabel *)websiteLabel {
     if (!_websiteLabel) {
         _websiteLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 44)];
         _websiteLabel.font = [UIFont systemFontOfSize:15];
         _websiteLabel.textColor = [UIColor redColor];
         _websiteLabel.textAlignment = NSTextAlignmentCenter;
-        _websiteLabel.text = @"www.longjianjiang.com";
     }
     return _websiteLabel;
 }
 #pragma mark event response
-- (void)itemClick
-{
-    LJInAppBrowserActionSheet *actionSheet = [LJInAppBrowserActionSheet inAppBrowserActionSheetWithPresentedViewController:self items:@[UMShareToWechatSession,UMShareToWechatTimeline] title:@"longjianjiang.com" image:nil urlResource:nil];
+- (void)share {
+    UIActivityViewController *acVC = [[UIActivityViewController alloc] initWithActivityItems:@[@"安利一下",_urlStr] applicationActivities:nil];
+    [self presentViewController:acVC animated:YES completion:nil];
+}
+- (void)itemClick {
+    LJInAppBrowserActionSheet *actionSheet = [LJInAppBrowserActionSheet inAppBrowserActionSheetWithPresentedViewController:self items:@[] title:@"longjianjiang.com" image:nil urlResource:nil];
     actionSheet.delegate = self;
     [[UIApplication sharedApplication].keyWindow addSubview:actionSheet];
 }
 
--(void)clickedbackBtn:(UIButton*)btn{
-    if (self.webView.canGoBack) {
+-(void)clickedbackBtn:(UIButton*)btn {
+    if (self.wkWebview.canGoBack) {
         [self setupLeftNavigationBarBtn];
-        [self.webView goBack];
+        [self.wkWebview goBack];
     }else{
         [self.navigationController popViewControllerAnimated:YES];
     }
@@ -205,63 +274,29 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     [self.navigationController popViewControllerAnimated:YES];
 }
 #pragma mark private method
-- (NSString *)getDomainFromURL:(NSString *)url
-{
+- (NSString *)getDomainFromURL:(NSString *)url {
     NSRange range1 = [url rangeOfString:@"://"];
     url = [url substringFromIndex:range1.location + range1.length];
     NSRange range2 = [url rangeOfString:@"/"];
     url = [url substringToIndex:range2.location];
     return url;
 }
-- (void)loadURL
-{
-    NSURL *url = [NSURL URLWithString:self.urlStr];
-    NSURLRequest *req = [[NSURLRequest alloc] initWithURL:url];
-    [self.webView loadRequest:req];
-}
 
 -(void)setupLeftNavigationBarBtn{
-    
     UIView * customView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 88, 44)];
     
-    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(@"backBtn")] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
+    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
     backBtn.frame = CGRectMake(0, 0, 44, 44);
     [customView addSubview:backBtn];
     
     UIButton *closeBtn = [[UIButton alloc] init];
     [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
-    [closeBtn setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
+    [closeBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
     [closeBtn addTarget:self action:@selector(clickedcloseBtn:) forControlEvents:UIControlEventTouchUpInside];
     closeBtn.frame = CGRectMake(38, 0, 44, 44);
     [closeBtn.titleLabel setFont:[UIFont systemFontOfSize:16]];
     [customView addSubview:closeBtn];
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:customView];
-}
-
--(void)setupNavigationItem
-{
-    self.scale = 100;
-    [self.view setBackgroundColor:[UIColor whiteColor]];
-    
-    self.navigationItem.rightBarButtonItem = [UIBarButtonItem itemWithTarget:self action:@selector(itemClick) image:LJSrcName(@"navigationbar_more") highlightedImage:LJSrcName(@"navigationbar_more_highlighted")];
-    
-    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(@"backBtn")] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
-    backBtn.frame = CGRectMake(0, 0, 44, 44);
-    
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
-}
-
--(BOOL)isDirectShareInIconActionSheet
-{
-    return YES;
-}
-
--(void)didFinishGetUMSocialDataInViewController:(UMSocialResponseEntity *)response
-{
-    if(response.responseCode == UMSResponseCodeSuccess)
-    {
-        NSLog(@"share to sns name is %@",[[response.data allKeys] objectAtIndex:0]);
-    }
 }
 @end

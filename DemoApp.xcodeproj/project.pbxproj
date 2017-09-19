@@ -18,8 +18,6 @@
 		FB9105DC1D2221A600F28769 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB9105DB1D2221A600F28769 /* Assets.xcassets */; };
 		FB9105DF1D2221A600F28769 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FB9105DD1D2221A600F28769 /* LaunchScreen.storyboard */; };
 		FB9105E91D2221FD00F28769 /* LJInAppBrowserController.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105E81D2221FD00F28769 /* LJInAppBrowserController.m */; };
-		FB9105EF1D22224000F28769 /* NJKWebViewProgress.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105EC1D22224000F28769 /* NJKWebViewProgress.m */; };
-		FB9105F01D22224000F28769 /* NJKWebViewProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105EE1D22224000F28769 /* NJKWebViewProgressView.m */; };
 		FB9105F31D22BE3E00F28769 /* LJInAppBrowser.bundle in Resources */ = {isa = PBXBuildFile; fileRef = FB9105F21D22BE3E00F28769 /* LJInAppBrowser.bundle */; };
 		FB9105F61D22BF7C00F28769 /* UIBarButtonItem+Extension.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105F51D22BF7C00F28769 /* UIBarButtonItem+Extension.m */; };
 		FB9105FA1D22BFB400F28769 /* UIView+Extension.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105F91D22BFB400F28769 /* UIView+Extension.m */; };
@@ -48,10 +46,6 @@
 		FB9105E01D2221A600F28769 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FB9105E71D2221FD00F28769 /* LJInAppBrowserController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJInAppBrowserController.h; sourceTree = "<group>"; };
 		FB9105E81D2221FD00F28769 /* LJInAppBrowserController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJInAppBrowserController.m; sourceTree = "<group>"; };
-		FB9105EB1D22224000F28769 /* NJKWebViewProgress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NJKWebViewProgress.h; sourceTree = "<group>"; };
-		FB9105EC1D22224000F28769 /* NJKWebViewProgress.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NJKWebViewProgress.m; sourceTree = "<group>"; };
-		FB9105ED1D22224000F28769 /* NJKWebViewProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NJKWebViewProgressView.h; sourceTree = "<group>"; };
-		FB9105EE1D22224000F28769 /* NJKWebViewProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NJKWebViewProgressView.m; sourceTree = "<group>"; };
 		FB9105F21D22BE3E00F28769 /* LJInAppBrowser.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = LJInAppBrowser.bundle; sourceTree = "<group>"; };
 		FB9105F41D22BF7C00F28769 /* UIBarButtonItem+Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBarButtonItem+Extension.h"; sourceTree = "<group>"; };
 		FB9105F51D22BF7C00F28769 /* UIBarButtonItem+Extension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBarButtonItem+Extension.m"; sourceTree = "<group>"; };
@@ -140,7 +134,6 @@
 			children = (
 				FB9105F71D22BF8C00F28769 /* Category */,
 				FB9105F21D22BE3E00F28769 /* LJInAppBrowser.bundle */,
-				FB9105EA1D22224000F28769 /* NJKWebViewProgress */,
 				FB9105E71D2221FD00F28769 /* LJInAppBrowserController.h */,
 				FB9105E81D2221FD00F28769 /* LJInAppBrowserController.m */,
 				FB5ECC011D261B7600A23893 /* LJInAppBrowserActionSheet.h */,
@@ -150,17 +143,6 @@
 			);
 			name = LJInAppBrowser;
 			path = ../LJInAppBrowser;
-			sourceTree = "<group>";
-		};
-		FB9105EA1D22224000F28769 /* NJKWebViewProgress */ = {
-			isa = PBXGroup;
-			children = (
-				FB9105EB1D22224000F28769 /* NJKWebViewProgress.h */,
-				FB9105EC1D22224000F28769 /* NJKWebViewProgress.m */,
-				FB9105ED1D22224000F28769 /* NJKWebViewProgressView.h */,
-				FB9105EE1D22224000F28769 /* NJKWebViewProgressView.m */,
-			);
-			path = NJKWebViewProgress;
 			sourceTree = "<group>";
 		};
 		FB9105F71D22BF8C00F28769 /* Category */ = {
@@ -299,9 +281,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FB9105EF1D22224000F28769 /* NJKWebViewProgress.m in Sources */,
 				FB9105F61D22BF7C00F28769 /* UIBarButtonItem+Extension.m in Sources */,
-				FB9105F01D22224000F28769 /* NJKWebViewProgressView.m in Sources */,
 				FB9105D71D2221A600F28769 /* ViewController.m in Sources */,
 				FB9105D41D2221A600F28769 /* AppDelegate.m in Sources */,
 				FB5ECC031D261B7600A23893 /* LJInAppBrowserActionSheet.m in Sources */,

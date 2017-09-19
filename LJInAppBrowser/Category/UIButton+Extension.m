@@ -22,8 +22,8 @@
     btn.frame = CGRectMake(btnX, btnY, btnW, btnH);
     [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitle:title forState:UIControlStateHighlighted];
-    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [btn setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
+    [btn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
+    [btn setTitleColor:[UIColor redColor] forState:UIControlStateHighlighted];
     [btn addTarget:target action:action forControlEvents:controlEvents];
     [btn.titleLabel setFont:[UIFont systemFontOfSize:16]];
     

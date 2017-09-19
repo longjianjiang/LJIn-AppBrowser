@@ -8,9 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSInteger, LJInAppBrowserControllerStyle) {
+    LJInAppBrowserControllerStyleWhite,
+    LJInAppBrowserControllerStyleGray,
+};
 
 @interface LJInAppBrowserController : UIViewController
 
+- (instancetype)initWithInAppBrowserControllerStyle:(LJInAppBrowserControllerStyle)style UrlStr:(NSString *)urlStr;
+@property (nonatomic,assign) LJInAppBrowserControllerStyle style; /// 默认是白色
 /**
  *  字符串形式的URL
  */
@@ -19,10 +25,9 @@
 /**
  *  加载进度条的颜色
  */
-@property (nonatomic,strong)UIColor* loadingProgressColor;
+@property (nonatomic,strong)UIColor* loadingProgressColor; /// 默认是蓝色
 /**
  *  当前页面的URL
  */
 @property (nonatomic,copy) NSString *fullUrl;
-
 @end

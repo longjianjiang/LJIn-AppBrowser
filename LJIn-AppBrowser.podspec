@@ -14,6 +14,5 @@ Pod::Spec.new do |s|
 	
   s.source_files     = 'LJInAppBrowser/Category/*.{h,m}', 'LJInAppBrowser/NJKWebViewProgress/*.{h,m}', 'LJInAppBrowser/**/*.{h,m}' 
   s.resource     = 'LJInAppBrowser/LJInAppBrowser.bundle'
-  s.dependency 'UMengSocial'
   s.frameworks        = 'UIKit'
 end

@@ -23,7 +23,7 @@
     self.title = @"首页";
     self.view.backgroundColor = [UIColor orangeColor];
     
-    [self setNavColor];
+//    [self setNavColor];
 }
 -(void)setNavColor{
     NSArray *ver = [[UIDevice currentDevice].systemVersion componentsSeparatedByString:@"."];
@@ -34,19 +34,15 @@
         self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
         [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
         
-        
         self.navigationController.navigationBar.translucent = YES;
-        
-        
     }
 }
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
-    LJInAppBrowserController *browser = [[LJInAppBrowserController alloc] init];
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    LJInAppBrowserController *browser = [[LJInAppBrowserController alloc] initWithInAppBrowserControllerStyle:LJInAppBrowserControllerStyleGray UrlStr:@"http://www.baidu.com"];
     browser.loadingProgressColor = [UIColor orangeColor];
-    browser.urlStr = @"http://www.baidu.com";
     [self.navigationController pushViewController:browser animated:YES];
 }
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
