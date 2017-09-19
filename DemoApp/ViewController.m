@@ -8,7 +8,6 @@
 
 #import "ViewController.h"
 #import "LJInAppBrowserController.h"
-#import "UINavigationBar+Awesome.h"
 
 @interface ViewController ()
 
@@ -23,22 +22,11 @@
     self.title = @"首页";
     self.view.backgroundColor = [UIColor orangeColor];
     
-//    [self setNavColor];
 }
--(void)setNavColor{
-    NSArray *ver = [[UIDevice currentDevice].systemVersion componentsSeparatedByString:@"."];
-    if ([[ver objectAtIndex:0] intValue] >= 7) {
-        // iOS 7.0 or later
-        [self.navigationController.navigationBar lt_setBackgroundColor:[UIColor grayColor]];
-        
-        self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
-        [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
-        
-        self.navigationController.navigationBar.translucent = YES;
-    }
-}
+
+
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    LJInAppBrowserController *browser = [[LJInAppBrowserController alloc] initWithInAppBrowserControllerStyle:LJInAppBrowserControllerStyleGray UrlStr:@"http://www.baidu.com"];
+    LJInAppBrowserController *browser = [[LJInAppBrowserController alloc] initWithInAppBrowserControllerStyle:LJInAppBrowserControllerStyleWhite UrlStr:@"http://www.baidu.com"];
     browser.loadingProgressColor = [UIColor orangeColor];
     [self.navigationController pushViewController:browser animated:YES];
 }

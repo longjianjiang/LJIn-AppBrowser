@@ -19,9 +19,7 @@
 		FB9105DF1D2221A600F28769 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FB9105DD1D2221A600F28769 /* LaunchScreen.storyboard */; };
 		FB9105E91D2221FD00F28769 /* LJInAppBrowserController.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105E81D2221FD00F28769 /* LJInAppBrowserController.m */; };
 		FB9105F31D22BE3E00F28769 /* LJInAppBrowser.bundle in Resources */ = {isa = PBXBuildFile; fileRef = FB9105F21D22BE3E00F28769 /* LJInAppBrowser.bundle */; };
-		FB9105F61D22BF7C00F28769 /* UIBarButtonItem+Extension.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105F51D22BF7C00F28769 /* UIBarButtonItem+Extension.m */; };
 		FB9105FA1D22BFB400F28769 /* UIView+Extension.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105F91D22BFB400F28769 /* UIView+Extension.m */; };
-		FB9105FD1D2360CB00F28769 /* UIButton+Extension.m in Sources */ = {isa = PBXBuildFile; fileRef = FB9105FC1D2360CB00F28769 /* UIButton+Extension.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,12 +45,8 @@
 		FB9105E71D2221FD00F28769 /* LJInAppBrowserController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJInAppBrowserController.h; sourceTree = "<group>"; };
 		FB9105E81D2221FD00F28769 /* LJInAppBrowserController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJInAppBrowserController.m; sourceTree = "<group>"; };
 		FB9105F21D22BE3E00F28769 /* LJInAppBrowser.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = LJInAppBrowser.bundle; sourceTree = "<group>"; };
-		FB9105F41D22BF7C00F28769 /* UIBarButtonItem+Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBarButtonItem+Extension.h"; sourceTree = "<group>"; };
-		FB9105F51D22BF7C00F28769 /* UIBarButtonItem+Extension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBarButtonItem+Extension.m"; sourceTree = "<group>"; };
 		FB9105F81D22BFB400F28769 /* UIView+Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Extension.h"; sourceTree = "<group>"; };
 		FB9105F91D22BFB400F28769 /* UIView+Extension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Extension.m"; sourceTree = "<group>"; };
-		FB9105FB1D2360CB00F28769 /* UIButton+Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIButton+Extension.h"; sourceTree = "<group>"; };
-		FB9105FC1D2360CB00F28769 /* UIButton+Extension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+Extension.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,10 +144,6 @@
 			children = (
 				FB9105F81D22BFB400F28769 /* UIView+Extension.h */,
 				FB9105F91D22BFB400F28769 /* UIView+Extension.m */,
-				FB9105F41D22BF7C00F28769 /* UIBarButtonItem+Extension.h */,
-				FB9105F51D22BF7C00F28769 /* UIBarButtonItem+Extension.m */,
-				FB9105FB1D2360CB00F28769 /* UIButton+Extension.h */,
-				FB9105FC1D2360CB00F28769 /* UIButton+Extension.m */,
 			);
 			path = Category;
 			sourceTree = "<group>";
@@ -281,7 +271,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FB9105F61D22BF7C00F28769 /* UIBarButtonItem+Extension.m in Sources */,
 				FB9105D71D2221A600F28769 /* ViewController.m in Sources */,
 				FB9105D41D2221A600F28769 /* AppDelegate.m in Sources */,
 				FB5ECC031D261B7600A23893 /* LJInAppBrowserActionSheet.m in Sources */,
@@ -289,7 +278,6 @@
 				FB67A7CD1D27B136000496D9 /* UINavigationBar+Awesome.m in Sources */,
 				FB9105FA1D22BFB400F28769 /* UIView+Extension.m in Sources */,
 				FB5ECC061D2758E000A23893 /* LJInAppBrowserResizeFontSlider.m in Sources */,
-				FB9105FD1D2360CB00F28769 /* UIButton+Extension.m in Sources */,
 				FB9105E91D2221FD00F28769 /* LJInAppBrowserController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

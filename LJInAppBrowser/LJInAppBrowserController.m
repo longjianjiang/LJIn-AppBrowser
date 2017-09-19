@@ -7,21 +7,22 @@
 //
 
 #import "LJInAppBrowserController.h"
-//#import "UIBarButtonItem+Extension.h"
-#import "UIButton+Extension.h"
+#import "UIView+Extension.h"
 #import "LJInAppBrowserActionSheet.h"
 #import "LJInAppBrowserResizeFontSlider.h"
 #import <WebKit/WebKit.h>
+
 #define LJSrcName(file) [LJInAppBrowserBundleName stringByAppendingPathComponent:file]
 
-@interface LJInAppBrowserController ()<UIWebViewDelegate,UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate>
+@interface LJInAppBrowserController ()<UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate>
 
 @property (nonatomic,strong) WKWebView *wkWebview;
 @property (nonatomic,strong) UIProgressView *myProgressView;
-@property (nonatomic,copy) NSString *backBtnName;
 @property (nonatomic,strong) UIColor *navigationItemTitleColor;
 @property (nonatomic,strong) UILabel *websiteLabel;
 
+@property (nonatomic,copy) NSString *backBtnName;
+@property (nonatomic,copy) NSString *moreBtnName;
 
 @property (nonatomic,assign) int scale;
 @end
@@ -34,12 +35,14 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 - (instancetype)initWithInAppBrowserControllerStyle:(LJInAppBrowserControllerStyle)style UrlStr:(NSString *)urlStr {
     if (self = [super init]) {
         _style = style;
-        if (_style == LJInAppBrowserControllerStyleWhite) {
+        if (_style == LJInAppBrowserControllerStyleGray) {
             self.backBtnName = @"navigationbar_back_withtext_white";
-            self.navigationItemTitleColor = [UIColor grayColor];
+            self.moreBtnName = @"navigationbar_more_white";
+            self.navigationItemTitleColor = [UIColor whiteColor];
         } else {
             self.backBtnName = @"navigationbar_back_withtext_gray";
-            self.navigationItemTitleColor = [UIColor whiteColor];
+            self.moreBtnName = @"navigationbar_more_gray";
+            self.navigationItemTitleColor = [UIColor grayColor];
         }
         _urlStr = urlStr;
     }
@@ -51,6 +54,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         _style = LJInAppBrowserControllerStyleWhite;
         _navigationItemTitleColor = [UIColor whiteColor];
         _backBtnName = @"navigationbar_back_withtext_white";
+        _moreBtnName = @"navigationbar_more_white";
         _loadingProgressColor = [UIColor blueColor];
     }
     return self;
@@ -58,11 +62,14 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 
 -(void)setupNavigationItem {
     self.scale = 100;
-    [self.view setBackgroundColor:[UIColor whiteColor]];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(share)];
-    //    self.navigationItem.rightBarButtonItem = [UIBarButtonItem itemWithTarget:self action:@selector(itemClick) image:LJSrcName(@"navigationbar_more") highlightedImage:LJSrcName(@"navigationbar_more_highlighted")];
-    
-    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
+    UIButton *item = [UIButton buttonWithType:UIButtonTypeCustom];
+    [item setBackgroundImage:[UIImage imageNamed:LJSrcName(_moreBtnName)] forState:UIControlStateNormal];
+    [item setBackgroundImage:[UIImage imageNamed:LJSrcName(_moreBtnName)] forState:UIControlStateHighlighted];
+    item.size = item.currentBackgroundImage.size;
+    [item addTarget:self action:@selector(itemClick) forControlEvents:UIControlEventTouchDown];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:item];
+
+    UIButton *backBtn = [self buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
     backBtn.frame = CGRectMake(0, 0, 44, 44);
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
@@ -90,11 +97,8 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     NSURLRequest *req = [[NSURLRequest alloc] initWithURL:url];
     [self.wkWebview loadRequest:req];
 }
-- (void)viewDidLoad {
-    [super viewDidLoad];
 
-    [self setupNavigationItem];
-    
+- (void)setupSubview {
     [self.view addSubview:self.wkWebview];
     [[self.wkWebview.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor] setActive:YES];
     [[self.wkWebview.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:64] setActive:YES];
@@ -102,7 +106,18 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     [[self.wkWebview.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor] setActive:YES];
     
     [self.view addSubview:self.websiteLabel];
+    
     [self setupTitleAndProgressView];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    [self.view setBackgroundColor:[UIColor whiteColor]];
+    [self setupNavigationItem];
+    
+    [self setupSubview];
+   
     [self loadURL];
 }
 
@@ -112,14 +127,21 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     [self.view sendSubviewToBack:self.websiteLabel];
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.myProgressView removeFromSuperview];
+}
+
 -(void)viewDidDisappear:(BOOL)animated{
     [super viewDidDisappear:animated];
-    [self.myProgressView removeFromSuperview];
     [self.wkWebview removeObserver:self forKeyPath:@"estimatedProgress"];
     [self.wkWebview removeObserver:self forKeyPath:@"title"];
     [self.wkWebview removeObserver:self forKeyPath:@"URL"];
 }
 
+- (void)dealloc {
+    NSLog(@"i am dealloc");
+}
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     
     if ([keyPath isEqualToString:@"estimatedProgress"]) {
@@ -184,22 +206,22 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 //}
 
 #pragma mark LJInAppBrowserActionSheetDelegate
-//- (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
-//{
-//    switch (tag) {
-//        case 1:{
-//            LJInAppBrowserResizeFontSlider *sliderView = [LJInAppBrowserResizeFontSlider inAppBrowserResizeFontSlider];
-//            sliderView.delegate = self;
-//            [[UIApplication sharedApplication].keyWindow addSubview:sliderView];
-//        }
-//            break;
-//        case 3:
-//            [self.webView reload];
-//            break;
-//        default:
-//            break;
-//    }
-//}
+- (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
+{
+    switch (tag) {
+        case 1:{
+            LJInAppBrowserResizeFontSlider *sliderView = [LJInAppBrowserResizeFontSlider inAppBrowserResizeFontSlider];
+            sliderView.delegate = self;
+            [[UIApplication sharedApplication].keyWindow addSubview:sliderView];
+        }
+            break;
+        case 3:
+            [self.wkWebview reload];
+            break;
+        default:
+            break;
+    }
+}
 #pragma mark LJInAppBrowserResizeFontSliderDelegate
 - (void)inAppBrowserResizeFontSlider:(LJInAppBrowserResizeFontSlider *)slider didChangeFontSize:(NSString *)percent
 {
@@ -235,7 +257,6 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 - (WKWebView *)wkWebview {
     if (!_wkWebview) {
         _wkWebview = [WKWebView new];
-        _wkWebview.backgroundColor = [UIColor blackColor];
         _wkWebview.scrollView.delegate = self;
         _wkWebview.translatesAutoresizingMaskIntoConstraints = NO;
     }
@@ -282,10 +303,10 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     return url;
 }
 
--(void)setupLeftNavigationBarBtn{
+-(void)setupLeftNavigationBarBtn {
     UIView * customView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 88, 44)];
     
-    UIButton *backBtn = [UIButton buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
+    UIButton *backBtn = [self buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
     backBtn.frame = CGRectMake(0, 0, 44, 44);
     [customView addSubview:backBtn];
     
@@ -293,10 +314,24 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
     [closeBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
     [closeBtn addTarget:self action:@selector(clickedcloseBtn:) forControlEvents:UIControlEventTouchUpInside];
-    closeBtn.frame = CGRectMake(38, 0, 44, 44);
+    closeBtn.frame = CGRectMake(44, 0, 44, 44);
     [closeBtn.titleLabel setFont:[UIFont systemFontOfSize:16]];
     [customView addSubview:closeBtn];
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:customView];
+}
+- (UIButton *)buttonBackWithImage:(UIImage *)image buttontitle:(NSString *)title target:(id)target action:(SEL)action forControlEvents:(UIControlEvents)controlEvents {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    
+    [btn setImage:image forState:UIControlStateNormal];
+    [btn setImage:image forState:UIControlStateHighlighted];
+    [btn setTitle:title forState:UIControlStateNormal];
+    [btn setTitleColor:self.navigationItemTitleColor forState:UIControlStateNormal];
+    [btn addTarget:target action:action forControlEvents:controlEvents];
+    [btn.titleLabel setFont:[UIFont systemFontOfSize:16]];
+    
+    btn.contentEdgeInsets = UIEdgeInsetsMake(0, -20, 0, 0);
+    btn.titleEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
+    return btn;
 }
 @end
