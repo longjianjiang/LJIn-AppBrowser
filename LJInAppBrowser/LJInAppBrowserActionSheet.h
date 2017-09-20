@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 @class LJInAppBrowserActionSheet;
+
 @protocol LJInAppBrowserActionSheetDelegate <NSObject>
 
 @optional
@@ -15,7 +16,9 @@
 @end
 
 @interface LJInAppBrowserActionSheet : UIView
-+ (instancetype)inAppBrowserActionSheetWithPresentedViewController:(UIViewController *)controller items:(NSArray *)items title:(NSString *)title image:(UIImage *)image urlResource:(NSString *)url;
+
+- (instancetype)initWithInAppBrowserActionSheetTitle:(NSString *)title fullURL:(NSString *)fullURL;
+
 @property (nonatomic,weak) id<LJInAppBrowserActionSheetDelegate> delegate;
 
 @end

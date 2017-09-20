@@ -21,6 +21,9 @@
 @property (nonatomic,strong) UIColor *navigationItemTitleColor;
 @property (nonatomic,strong) UILabel *websiteLabel;
 
+@property (nonatomic,copy) NSString *websiteName;
+@property (nonatomic,copy) NSString *fullURL;
+
 @property (nonatomic,copy) NSString *backBtnName;
 @property (nonatomic,copy) NSString *moreBtnName;
 
@@ -66,7 +69,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     [item setBackgroundImage:[UIImage imageNamed:LJSrcName(_moreBtnName)] forState:UIControlStateNormal];
     [item setBackgroundImage:[UIImage imageNamed:LJSrcName(_moreBtnName)] forState:UIControlStateHighlighted];
     item.size = item.currentBackgroundImage.size;
-    [item addTarget:self action:@selector(itemClick) forControlEvents:UIControlEventTouchDown];
+    [item addTarget:self action:@selector(moreItemClick) forControlEvents:UIControlEventTouchDown];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:item];
 
     UIButton *backBtn = [self buttonBackWithImage:[UIImage imageNamed:LJSrcName(_backBtnName)] buttontitle:@"返回" target:self action:@selector(clickedbackBtn:) forControlEvents:UIControlEventTouchUpInside];
@@ -174,8 +177,9 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     
     if ([keyPath isEqualToString:@"URL"]) {
         if (object == self.wkWebview) {
-            NSString *website = [self getDomainFromURL:[self.wkWebview.URL absoluteString]];
-            self.websiteLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供", website];
+            _fullURL = [self.wkWebview.URL absoluteString];
+            _websiteName = [self getDomainFromURL:[self.wkWebview.URL absoluteString]];
+            self.websiteLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供", _websiteName];
         } else {
             [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
         }
@@ -276,8 +280,8 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     UIActivityViewController *acVC = [[UIActivityViewController alloc] initWithActivityItems:@[@"安利一下",_urlStr] applicationActivities:nil];
     [self presentViewController:acVC animated:YES completion:nil];
 }
-- (void)itemClick {
-    LJInAppBrowserActionSheet *actionSheet = [LJInAppBrowserActionSheet inAppBrowserActionSheetWithPresentedViewController:self items:@[] title:@"longjianjiang.com" image:nil urlResource:nil];
+- (void)moreItemClick {
+    LJInAppBrowserActionSheet *actionSheet = [[LJInAppBrowserActionSheet alloc] initWithInAppBrowserActionSheetTitle:_websiteName fullURL:_fullURL];
     actionSheet.delegate = self;
     [[UIApplication sharedApplication].keyWindow addSubview:actionSheet];
 }

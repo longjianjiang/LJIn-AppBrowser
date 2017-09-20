@@ -8,93 +8,57 @@
 
 #import "LJInAppBrowserActionSheet.h"
 #import "UIView+Extension.h"
-#import "UMSocial.h"
-#import "LJInAppBrowserController.h"
+
 #define kScreenHeight [[UIScreen mainScreen] bounds].size.height
 #define kScreenWidth [[UIScreen mainScreen] bounds].size.width
-#define ShareViewHeight 280
+#define ShareViewHeight 180
 #define LJSrcName(file) [LJInAppBrowserBundleName stringByAppendingPathComponent:file]
+#define ToolItemCount 4
 static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 
 @interface LJInAppBrowserActionSheet ()
 
-@property (nonatomic,strong) NSArray *items;
+@property (nonatomic,copy) NSString *fullURL;
 @property (nonatomic,copy) NSString *title;
-@property (nonatomic,copy) UIImage *image;
-@property (nonatomic,copy) NSString *url;
-@property (nonatomic,strong) LJInAppBrowserController *controller;
-@property (nonatomic,copy) NSString *fullUrl;
 
 
 @property (nonatomic,strong) UIView *maskingView;
 @property (nonatomic,strong) UIView *contentView;
 
 @property (nonatomic,strong) UILabel *titleLabel;
-@property (nonatomic,strong) UIScrollView *shareItemView;
 @property (nonatomic,strong) UIScrollView *toolItemView;
-@property (nonatomic,strong) UIView *separateLine;
 @property (nonatomic,strong) UIButton *cancelBtn;
 @end
 
+
 @implementation LJInAppBrowserActionSheet
-+ (instancetype)inAppBrowserActionSheetWithPresentedViewController:(UIViewController *)controller items:(NSArray *)items title:(NSString *)title image:(UIImage *)image urlResource:(NSString *)url
-{
-    LJInAppBrowserActionSheet *view = [[LJInAppBrowserActionSheet alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenHeight)];
-    
-    view.title = title;
-    view.url = url;
-    view.image = image;
-    view.items = items;
-    view.controller = (LJInAppBrowserController *)controller;
-    view.fullUrl = view.controller.fullUrl;
-    
-    [view createContentView];
-    
-    return view;
+
+#pragma mark life cycle
+- (instancetype)initWithInAppBrowserActionSheetTitle:(NSString *)title fullURL:(NSString *)fullURL{
+    if (self = [super init]) {
+        _title = title;
+        _fullURL = fullURL;
+        self.frame = CGRectMake(0, 0, kScreenWidth, kScreenHeight);
+        [self createContentView];
+    }
+    return self;
 }
 
-- (void)createContentView
-{
+- (void)createContentView {
    
     [self addSubview:self.maskingView];
     [self addSubview:self.contentView];
     
     [self.contentView addSubview:self.titleLabel];
-    [self.contentView addSubview:self.shareItemView];
-    [self.contentView addSubview:self.separateLine];
     [self.contentView addSubview:self.toolItemView];
     [self.contentView addSubview:self.cancelBtn];
     
     [UIView animateWithDuration:0.3 animations:^{
-        _maskingView.alpha = 0.3;
         _contentView.frame = CGRectMake(0, kScreenHeight-ShareViewHeight, kScreenWidth, ShareViewHeight);
     }];
 }
 
--(NSString *)getTitleAndSetImageWithShareItem:(UIButton *)itemBtn{
-    NSString *itemTitle = @"";
-    NSString *itemImage = @"";
-    NSString *type = _items[itemBtn.tag];
-    if([type isEqualToString:UMShareToWechatSession])
-    {
-        itemTitle = @"微信好友";
-        itemImage = LJSrcName(@"share_img_weixin");
-    }
-    else if([type isEqualToString:UMShareToWechatTimeline])
-    {
-        itemTitle = @"朋友圈";
-        itemImage = LJSrcName(@"share_img_friends");
-    }
-    else{
-        NSLog(@"其他设备自行添加");
-    }
-    
-    [itemBtn setImage:[UIImage imageNamed:itemImage] forState:UIControlStateNormal];
-    
-    return itemTitle;
-}
-- (NSString *)getTitleAndSetImageWithToolItem:(UIButton *)itemBtn
-{
+- (NSString *)getTitleAndSetImageWithToolItem:(UIButton *)itemBtn {
     NSString *itemTitle = @"";
     NSString *itemImage = @"";
     switch (itemBtn.tag) {
@@ -121,20 +85,18 @@ static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     
     return itemTitle;
 }
-- (void)addToolItems
-{
+- (void)addToolItems {
     CGFloat itemWidth  = 50;
     CGFloat itemHeight = 50;
     CGFloat pading = 20;//(_toolItemView.width-itemWidth*4)/5;
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<ToolItemCount; i++) {
         UIButton * itemBtn = [[UIButton alloc] initWithFrame:CGRectMake((itemWidth+pading)*i+pading, 15, itemWidth, itemHeight)];
         itemBtn.tag = i;
         NSString *itemName =  [self getTitleAndSetImageWithToolItem:itemBtn];
         [itemBtn addTarget:self action:@selector(toolItemClick:) forControlEvents:UIControlEventTouchUpInside];
-        
         [_toolItemView addSubview:itemBtn];
         
-        UILabel *itemLabel = [[UILabel alloc] initWithFrame:CGRectMake(itemBtn.left, itemBtn.bottom+5, itemWidth, 20)];
+        UILabel *itemLabel = [[UILabel alloc] initWithFrame:CGRectMake(itemBtn.left, itemBtn.bottom+5, itemWidth, 30)];
         itemLabel.text = itemName;
         itemLabel.numberOfLines = 0;
         itemLabel.font = [UIFont systemFontOfSize:12];
@@ -144,44 +106,13 @@ static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     _toolItemView.contentSize = CGSizeMake((itemWidth+pading)*4+pading, 0);
 
 }
-- (void)addShareItems
-{
-    if (_items.count) {
-        CGFloat itemWidth  = 50;
-        CGFloat itemHeight = 50;
-        CGFloat pading = 20;//_items.count<5 ? (_shareItemView.width-itemWidth*_items.count)/(_items.count+1) : 30;
-        for (int i=0; i<_items.count; i++) {
-            UIButton * itemBtn = [[UIButton alloc] initWithFrame:CGRectMake((itemWidth+pading)*i+pading, 15, itemWidth, itemHeight)];
-            itemBtn.tag = i;
-            NSString *itemName =  [self getTitleAndSetImageWithShareItem:itemBtn];
-            [itemBtn addTarget:self action:@selector(shareItemClick:) forControlEvents:UIControlEventTouchUpInside];
-            
-            [_shareItemView addSubview:itemBtn];
-            
-            UILabel *itemLabel = [[UILabel alloc] initWithFrame:CGRectMake(itemBtn.left, itemBtn.bottom+5, itemWidth, 20)];
-            itemLabel.numberOfLines = 0;
-            itemLabel.text = itemName;
-            itemLabel.font = [UIFont systemFontOfSize:12];
-            itemLabel.textAlignment = NSTextAlignmentCenter;
-            [_shareItemView addSubview:itemLabel];
-        }
-        _shareItemView.contentSize = CGSizeMake((itemWidth+pading)*_items.count+pading, 0);
-    }
-}
+
 #pragma mark event response
--(void)shareItemClick:(UIButton *)btn{
-    NSInteger index = btn.tag;
-    [[UMSocialDataService defaultDataService]  postSNSWithTypes:@[_items[index]] content:_title image:_image location:nil urlResource:nil presentedController:_controller completion:^(UMSocialResponseEntity *response){
-        if (response.responseCode == UMSResponseCodeSuccess) {
-            NSLog(@"分享成功");
-        }
-    }];
-}
 - (void)toolItemClick:(UIButton *)btn{
     switch (btn.tag) {
         case 0:{
             UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-            [pasteboard setString:self.fullUrl];
+            [pasteboard setString:self.fullURL];
             [self dismissShareView];
         }
             break;
@@ -193,7 +124,7 @@ static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         }
             break;
         case 2:{
-            NSURL *url = [NSURL URLWithString:self.fullUrl];
+            NSURL *url = [NSURL URLWithString:self.fullURL];
             [[UIApplication sharedApplication] openURL:url];
             [self dismissShareView];
         }
@@ -213,7 +144,6 @@ static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 -(void)dismissShareView{
     
     [UIView animateWithDuration:0.3 animations:^{
-        _maskingView.alpha = 0.0;
         _contentView.frame = CGRectMake(0, kScreenHeight, kScreenWidth, ShareViewHeight);
     } completion:^(BOOL finished) {
         [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
@@ -222,71 +152,47 @@ static  NSString * LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     
 }
 #pragma mark getter and setter
-- (UIView *)maskingView
-{
+- (UIView *)maskingView {
     if (!_maskingView) {
         _maskingView = [[UIView alloc] initWithFrame:self.bounds];
-        _maskingView.backgroundColor = [UIColor clearColor];
+        _maskingView.backgroundColor = [UIColor colorWithRed:131/255.0 green:131/255.0 blue:131/255.0 alpha:0.2];
         [_maskingView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissShareView)]];
     }
     return _maskingView;
 }
-- (UIView *)contentView
-{
+- (UIView *)contentView {
     if (!_contentView) {
         _contentView = [[UIView alloc] initWithFrame:CGRectMake(0, kScreenHeight, kScreenWidth, ShareViewHeight)];
-        _contentView.backgroundColor = [UIColor clearColor];
+        _contentView.backgroundColor = [UIColor colorWithRed:224/255.0 green:224/255.0 blue:224/255.0 alpha:1.0];
     }
     return _contentView;
 }
-- (UILabel *)titleLabel
-{
+- (UILabel *)titleLabel {
     if (!_titleLabel) {
         _titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, 30)];
-        _titleLabel.backgroundColor = [UIColor grayColor];
-        _titleLabel.text = @"  分享到";
+        _titleLabel.backgroundColor = [UIColor colorWithRed:224/255.0 green:224/255.0 blue:224/255.0 alpha:1.0];
+        _titleLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供", _title];
         _titleLabel.font = [UIFont systemFontOfSize:16];
-        _titleLabel.textAlignment = NSTextAlignmentLeft;
+        _titleLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _titleLabel;
 }
-- (UIScrollView *)shareItemView
-{
-    if (!_shareItemView) {
-        _shareItemView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.titleLabel.frame), kScreenWidth, 100)];
-        _shareItemView.backgroundColor = [UIColor grayColor];
-        _shareItemView.layer.masksToBounds = YES;
-        _shareItemView.showsVerticalScrollIndicator = NO;
-        [self addShareItems];
-    }
-    return _shareItemView;
-}
-- (UIView *)separateLine
-{
-    if (!_separateLine) {
-        _separateLine = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.shareItemView.frame), kScreenWidth, 1)];
-        _separateLine.backgroundColor = [UIColor orangeColor];
-    }
-    return _separateLine;
-}
-- (UIScrollView *)toolItemView
-{
+
+- (UIScrollView *)toolItemView {
     if (!_toolItemView) {
-        _toolItemView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.separateLine.frame), kScreenWidth, 100)];
-        _toolItemView.backgroundColor = [UIColor grayColor];
-        _toolItemView.layer.masksToBounds = YES;
+        _toolItemView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.titleLabel.frame), kScreenWidth, 106)];
+        _toolItemView.backgroundColor = [UIColor colorWithRed:224/255.0 green:224/255.0 blue:224/255.0 alpha:1.0];
         _toolItemView.showsVerticalScrollIndicator = NO;
         [self addToolItems];
     }
     return _toolItemView;
 }
-- (UIButton *)cancelBtn
-{
+- (UIButton *)cancelBtn {
     if (!_cancelBtn) {
-        _cancelBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_toolItemView.frame), kScreenWidth, 50)];
+        _cancelBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_toolItemView.frame), kScreenWidth, 44)];
         _cancelBtn.layer.masksToBounds = YES;
         [_cancelBtn setTitle:@"取消" forState:UIControlStateNormal];
-        _cancelBtn.backgroundColor = [UIColor whiteColor];
+        _cancelBtn.backgroundColor = [UIColor colorWithRed:244/255.0 green:244/255.0 blue:244/255.0 alpha:1.0];
         [_cancelBtn addTarget:self action:@selector(dismissShareView) forControlEvents:UIControlEventTouchUpInside];
         [_cancelBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     }
