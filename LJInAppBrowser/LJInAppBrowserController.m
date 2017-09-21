@@ -14,7 +14,7 @@
 
 #define LJSrcName(file) [LJInAppBrowserBundleName stringByAppendingPathComponent:file]
 
-@interface LJInAppBrowserController ()<UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate>
+@interface LJInAppBrowserController ()<UIScrollViewDelegate,LJInAppBrowserActionSheetDelegate,LJInAppBrowserResizeFontSliderDelegate,WKNavigationDelegate>
 
 @property (nonatomic,strong) WKWebView *wkWebview;
 @property (nonatomic,strong) UIProgressView *myProgressView;
@@ -197,18 +197,16 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     
 }
 
-#pragma mark UIWebViewDelegate
-//- (void)webViewDidFinishLoad:(UIWebView *)webView;
-//{
-//    self.websiteName = [self getDomainFromURL:webView.request.URL.absoluteString];
-//    self.fullUrl = webView.request.URL.absoluteString;
-//    self.websiteLabel.text = [NSString stringWithFormat:@"网页由 %@ 提供",self.websiteName];
-//    
-//    self.scale = [[[NSUserDefaults standardUserDefaults] objectForKey:@"scaleKey"] intValue];
-//    NSString* str1 =[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '%d%%'",self.scale];
-//    [_webView stringByEvaluatingJavaScriptFromString:str1];
-//}
-
+#pragma mark WKNavigationDelegate
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
+     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+}
+- (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error {
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+}
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+}
 #pragma mark LJInAppBrowserActionSheetDelegate
 - (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
 {
@@ -263,6 +261,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         _wkWebview = [WKWebView new];
         _wkWebview.scrollView.delegate = self;
         _wkWebview.translatesAutoresizingMaskIntoConstraints = NO;
+        _wkWebview.navigationDelegate = self;
     }
     return _wkWebview;
 }
