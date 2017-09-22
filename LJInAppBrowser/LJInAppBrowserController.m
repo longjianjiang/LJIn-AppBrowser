@@ -59,6 +59,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         _backBtnName = @"navigationbar_back_withtext_white";
         _moreBtnName = @"navigationbar_more_white";
         _loadingProgressColor = [UIColor blueColor];
+        _websiteLabelColor = [UIColor grayColor];
     }
     return self;
 }
@@ -102,13 +103,14 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 }
 
 - (void)setupSubview {
+    [self.view addSubview:self.websiteLabel];
     [self.view addSubview:self.wkWebview];
     [[self.wkWebview.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor] setActive:YES];
     [[self.wkWebview.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:64] setActive:YES];
     [[self.wkWebview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor] setActive:YES];
     [[self.wkWebview.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor] setActive:YES];
     
-    [self.view addSubview:self.websiteLabel];
+   
     
     [self setupTitleAndProgressView];
 }
@@ -126,8 +128,6 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
-    [self.view sendSubviewToBack:self.websiteLabel];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -179,7 +179,6 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         if (object == self.wkWebview) {
             _fullURL = [self.wkWebview.URL absoluteString];
             _websiteName = [self getDomainFromURL:[self.wkWebview.URL absoluteString]];
-            self.websiteLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供", _websiteName];
         } else {
             [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
         }
@@ -187,15 +186,6 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 }
 
 #pragma mark UIScrollViewDelegate
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    CGFloat y = self.wkWebview.scrollView.contentOffset.y;
-    if (y < -30) {
-        [self.view bringSubviewToFront:self.websiteLabel];
-    }else{
-        [self.view sendSubviewToBack:self.websiteLabel];
-    }
-    
-}
 
 #pragma mark WKNavigationDelegate
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
@@ -206,6 +196,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 }
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    self.websiteLabel.text = [NSString stringWithFormat:@"此网页由 %@ 提供",webView.URL.host];
 }
 #pragma mark LJInAppBrowserActionSheetDelegate
 - (void)inAppBrowserActionSheet:(LJInAppBrowserActionSheet *)actionsheet didSelectToolItemWithItemTag:(NSInteger)tag
@@ -262,6 +253,8 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
         _wkWebview.scrollView.delegate = self;
         _wkWebview.translatesAutoresizingMaskIntoConstraints = NO;
         _wkWebview.navigationDelegate = self;
+        _wkWebview.backgroundColor = [UIColor clearColor];
+        _wkWebview.opaque = NO;
     }
     return _wkWebview;
 }
@@ -269,7 +262,7 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     if (!_websiteLabel) {
         _websiteLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 44)];
         _websiteLabel.font = [UIFont systemFontOfSize:15];
-        _websiteLabel.textColor = [UIColor redColor];
+        _websiteLabel.textColor = _websiteLabelColor;
         _websiteLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _websiteLabel;

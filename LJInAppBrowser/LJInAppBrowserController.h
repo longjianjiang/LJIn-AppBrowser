@@ -25,7 +25,11 @@ typedef NS_ENUM(NSInteger, LJInAppBrowserControllerStyle) {
 /**
  *  加载进度条的颜色
  */
-@property (nonatomic,strong)UIColor* loadingProgressColor; /// 默认是蓝色
+@property (nonatomic,strong) UIColor *loadingProgressColor; /// 默认是蓝色
+/**
+ *  下拉显示网址Label的颜色
+ */
+@property (nonatomic,strong) UIColor *websiteLabelColor; /// 默认是灰色
 /**
  *  当前页面的URL
  */

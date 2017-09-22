@@ -28,6 +28,7 @@
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     LJInAppBrowserController *browser = [[LJInAppBrowserController alloc] initWithInAppBrowserControllerStyle:LJInAppBrowserControllerStyleWhite UrlStr:@"http://www.baidu.com"];
     browser.loadingProgressColor = [UIColor orangeColor];
+    browser.websiteLabelColor = [UIColor purpleColor];
     [self.navigationController pushViewController:browser animated:YES];
 }
 
