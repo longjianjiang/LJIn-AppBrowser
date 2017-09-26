@@ -23,7 +23,6 @@
     [self.view addSubview:self.msgLabel];
     [[self.msgLabel.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor] setActive:YES];
     [[self.msgLabel.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor] setActive:YES];
-
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {

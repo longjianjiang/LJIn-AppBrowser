@@ -79,23 +79,6 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBtn];
 }
 
-- (void)setupTitleAndProgressView {
-    CGFloat progressBarHeight = 2.f;
-    CGRect navigationBarBounds = self.navigationController.navigationBar.bounds;
-    CGRect barFrame = CGRectMake(0, navigationBarBounds.size.height - progressBarHeight, navigationBarBounds.size.width, progressBarHeight);
-    
-    
-    self.myProgressView = [[UIProgressView alloc] initWithFrame:barFrame];
-    self.myProgressView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-    self.myProgressView.tintColor = self.loadingProgressColor;
-    self.myProgressView.trackTintColor = [UIColor whiteColor];
-    [self.navigationController.navigationBar addSubview:self.myProgressView];
-    
-    [self.wkWebview addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:NULL];
-    [self.wkWebview addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:NULL];
-    [self.wkWebview addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:NULL];
-}
-
 - (void)loadURL {
     NSRegularExpression *re = [[NSRegularExpression alloc] initWithPattern:@"([hH]ttp[s]{0,1})://[a-zA-Z0-9\\.\\-]+\\.([a-zA-Z]{2,4})(:\\d+)?(/[a-zA-Z0-9\\-~!@#$%^&*+?:_/=<>.',;]*)?" options:kNilOptions error:NULL];
     NSArray *result = [re matchesInString:_urlStr options:kNilOptions range:NSMakeRange(0, _urlStr.length)];
@@ -111,19 +94,42 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 - (void)setupSubview {
     [self.view addSubview:self.websiteLabel];
     [self.view addSubview:self.wkWebview];
+    
     [[self.wkWebview.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor] setActive:YES];
     [[self.wkWebview.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:64] setActive:YES];
     [[self.wkWebview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor] setActive:YES];
     [[self.wkWebview.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor] setActive:YES];
     
-   
+    
+    CGFloat height = CGRectGetMaxY(self.navigationController.navigationBar.frame);// self.navigationController.navigationBar.frame.size.height;
+    [[self.websiteLabel.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:height] setActive:YES];
+    [[self.websiteLabel.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor] setActive:YES];
+    [[self.websiteLabel.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor] setActive:YES];
+    [[self.websiteLabel.heightAnchor constraintEqualToConstant:44] setActive:YES];
     
     [self setupTitleAndProgressView];
+}
+- (void)setupTitleAndProgressView {
+    CGFloat progressBarHeight = 2.f;
+    CGRect navigationBarBounds = self.navigationController.navigationBar.bounds;
+    CGRect barFrame = CGRectMake(0, navigationBarBounds.size.height - progressBarHeight, navigationBarBounds.size.width, progressBarHeight);
+    
+    self.myProgressView = [[UIProgressView alloc] initWithFrame:barFrame];
+    self.myProgressView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+    self.myProgressView.tintColor = self.loadingProgressColor;
+    self.myProgressView.trackTintColor = [UIColor whiteColor];
+    [self.navigationController.navigationBar addSubview:self.myProgressView];
+    
+    [self.wkWebview addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:NULL];
+    [self.wkWebview addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:NULL];
+    [self.wkWebview addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:NULL];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    
+    NSLog(@"-------%d",CGRectGetMaxY(self.navigationController.navigationBar.frame));
     [self.view setBackgroundColor:[UIColor whiteColor]];
     [self setupNavigationItem];
     
@@ -266,7 +272,8 @@ NSString *const LJInAppBrowserBundleName = @"LJInAppBrowser.bundle";
 }
 - (UILabel *)websiteLabel {
     if (!_websiteLabel) {
-        _websiteLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 44)];
+        _websiteLabel = [UILabel new];
+        _websiteLabel.translatesAutoresizingMaskIntoConstraints = NO;
         _websiteLabel.font = [UIFont systemFontOfSize:15];
         _websiteLabel.textColor = _websiteLabelColor;
         _websiteLabel.textAlignment = NSTextAlignmentCenter;
