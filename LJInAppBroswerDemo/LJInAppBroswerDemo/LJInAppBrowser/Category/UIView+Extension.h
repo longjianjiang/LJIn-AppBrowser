@@ -2,7 +2,7 @@
 //  UIView+Extension.h
 //  LJWeibo
 //
-//  Created by 龙建 蒋 on 16/1/28.
+//  Created by longjianjiang on 16/1/28.
 //  Copyright © 2016年 Jiang. All rights reserved.
 //
 
