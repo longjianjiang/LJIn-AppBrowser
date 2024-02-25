@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'LJIn-AppBrowser'
-  s.version          = '0.0.5'
+  s.version          = '0.0.6'
   s.summary          = 'one In-App browser'
   s.description      = <<-DESC
                        An easy tool to use as In-App Browser.
