@@ -106,7 +106,6 @@
     return self.frame.origin;
 }
 
-
 - (CGFloat)left;
 {
     return CGRectGetMinX([self frame]);
